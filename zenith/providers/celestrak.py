@@ -8,6 +8,9 @@ entries in the Source dropdown.
 """
 
 import datetime
+import os
+import tempfile
+import time
 
 from qgis.core import QgsNetworkAccessManager
 from qgis.PyQt.QtCore import QUrl, QTimer
@@ -19,6 +22,9 @@ from ..orbits import parse_tles, propagate
 from ..satellites import category_for
 
 COMPUTE_MS = 2000          # recompute satellite positions every 2 s
+# reuse cached TLEs for 2 h — CelesTrak asks clients not to re-fetch the same
+# data more often, and 403s heavy groups when they do
+CACHE_MAX_AGE = 2 * 3600
 USER_AGENT = "ZenithQGIS/0.1 (QGIS plugin)"
 
 
@@ -51,7 +57,33 @@ class CelesTrakGroupProvider(SatelliteProvider):
     def update_area(self, bboxes):
         self._bbox = bboxes[0] if bboxes else None
 
+    def _cache_path(self):
+        return os.path.join(tempfile.gettempdir(), f"zenith_tle_{self.group}.txt")
+
+    def _read_cache(self):
+        try:
+            path = self._cache_path()
+            if os.path.exists(path) and time.time() - os.path.getmtime(path) < CACHE_MAX_AGE:
+                with open(path, encoding="utf-8") as fh:
+                    text = fh.read()
+                return text if text.strip() else None
+        except OSError as exc:
+            dbg(f"TLE cache read failed: {exc}")
+        return None
+
+    def _write_cache(self, text):
+        try:
+            with open(self._cache_path(), "w", encoding="utf-8") as fh:
+                fh.write(text)
+        except OSError as exc:
+            dbg(f"TLE cache write failed: {exc}")
+
     def _fetch_tles(self):
+        cached = self._read_cache()
+        if cached:
+            dbg(f"Using recent cached {self.group} orbital elements")
+            self._load(cached)
+            return
         url = ("https://celestrak.org/NORAD/elements/gp.php"
                f"?GROUP={self.group}&FORMAT=tle")
         req = QNetworkRequest(QUrl(url))
@@ -63,10 +95,22 @@ class CelesTrakGroupProvider(SatelliteProvider):
         reply.deleteLater()
         if not self._want:
             return
+        http = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
+        if http in (403, 429):
+            self.error.emit(
+                "CelesTrak is rate-limiting this group — large groups like 'All "
+                "active' are limited, and it asks clients not to re-fetch often. "
+                "Try a smaller group (Space stations, Brightest, GPS) or wait a "
+                "few minutes.")
+            return
         if reply.error() != QNetworkReply.NetworkError.NoError:
             self.error.emit(f"CelesTrak unreachable ({reply.errorString()}).")
             return
         text = bytes(reply.readAll()).decode("utf-8", "replace")
+        self._write_cache(text)
+        self._load(text)
+
+    def _load(self, text):
         self._sats = parse_tles(text)
         if not self._sats:
             self.error.emit(f"No orbital elements returned for {self.group}.")
