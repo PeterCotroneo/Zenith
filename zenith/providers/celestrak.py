@@ -161,10 +161,12 @@ class StationsProvider(CelesTrakGroupProvider):
 
 class VisualProvider(CelesTrakGroupProvider):
     id = "visual"
-    label = "Brightest / visible"
+    label = "Brightest satellites"
     group = "visual"
-    help_text = ("The ~150 brightest satellites — the ones you can see with the "
-                 "naked eye. Free and keyless.")
+    help_text = ("The ~150 brightest satellites — big enough to see with the "
+                 "naked eye at twilight (the ISS, Tiangong, large rocket bodies…). "
+                 "A curated set of objects, not a live 'visible from here now' "
+                 "filter. Free and keyless.")
 
 
 class GpsProvider(CelesTrakGroupProvider):
