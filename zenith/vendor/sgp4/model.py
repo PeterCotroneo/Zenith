@@ -5,6 +5,7 @@ from sgp4.propagation import sgp4
 
 minutes_per_day = 1440.
 
+
 class Satellite(object):
     """An earth-orbiting satellite as represented by the SGP4 model.
 
@@ -41,6 +42,7 @@ class Satellite(object):
         Mean motion in radians per minute.
 
     """
+
     def propagate(self, year, month=1, day=1, hour=0, minute=0, second=0.0):
         """Return a position and velocity vector for a given date and time."""
 

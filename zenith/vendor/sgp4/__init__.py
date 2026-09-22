@@ -77,7 +77,9 @@ This implementation passes all of the automated tests in the August 2010
 release of the reference implementation of SGP4 by Vallado et al., who
 originally published their revision of SGP4 in 2006:
 
-    Vallado, David A., Paul Crawford, Richard Hujsak, and T.S. Kelso, “Revisiting Spacetrack Report #3,” presented at the AIAA/AAS Astrodynamics Specialist Conference, Keystone, CO, 2006 August 21–24.
+    Vallado, David A., Paul Crawford, Richard Hujsak, and T.S. Kelso,
+    “Revisiting Spacetrack Report #3,” presented at the AIAA/AAS
+    Astrodynamics Specialist Conference, Keystone, CO, 2006 August 21–24.
 
 If you would like to review the paper, it is `available online
 <http://www.celestrak.com/publications/AIAA/2006-6753/>`_.  You can

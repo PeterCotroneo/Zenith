@@ -1,4 +1,7 @@
 This directory contains the pure-Python "sgp4" library by Brandon Rhodes,
-vendored unmodified for offline orbit propagation.
-Source: https://github.com/brandon-rhodes/python-sgp4  (version 1.4)
+vendored for offline orbit propagation.
+Source:  https://github.com/brandon-rhodes/python-sgp4  (version 1.4)
 License: MIT
+Modification: the TLE-validation `assert` statements in io.py were replaced with
+equivalent `raise ValueError` statements (to satisfy the QGIS plugin security
+scanner, which flags `assert`). Behaviour is unchanged. Otherwise unmodified.
