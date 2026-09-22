@@ -17,7 +17,9 @@ from qgis.core import (
     QgsProject, QgsCoordinateReferenceSystem, QgsCoordinateTransform,
     QgsRectangle, QgsPointXY, QgsWkbTypes, QgsMessageLog, Qgis,
 )
-from qgis.gui import QgsMapTool, QgsRubberBand, QgsCollapsibleGroupBox
+from qgis.gui import (
+    QgsMapTool, QgsRubberBand, QgsCollapsibleGroupBox, QgsHighlight,
+)
 
 from .providers import PROVIDERS
 from .satellites import SatelliteStore
@@ -347,9 +349,24 @@ class ZenithPlugin:
             if bbox is not None:
                 self.store.retain_within(bbox)
             self.store.expire(STALE_SECONDS)
+            self._dismiss_stale_highlights()
         except Exception as exc:  # noqa: BLE001
             dbg(f"Update error: {exc}")
         self._update_status()
+
+    def _dismiss_stale_highlights(self):
+        """The Identify tool draws a red highlight where a feature was when
+        clicked; QGIS never moves it as the feature's geometry updates, so on a
+        fast satellite it lingers at the wrong spot. Hide our layer's highlights
+        (non-destructively) once positions have moved on, so they don't mislead.
+        Other layers' highlights are left untouched."""
+        layer = self.store.layer()
+        if layer is None:
+            return
+        for item in self.iface.mapCanvas().scene().items():
+            if (isinstance(item, QgsHighlight) and item.isVisible()
+                    and item.layer() is layer):
+                item.hide()
 
     def _on_status(self, text):
         self._last_status = text

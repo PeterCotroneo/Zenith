@@ -138,6 +138,9 @@ class SatelliteStore:
         self._pending_upd.clear()
         return layer
 
+    def layer(self):
+        return self._layer if self._layer_valid() else None
+
     def _layer_valid(self):
         try:
             return self._layer is not None and self._layer.isValid()
