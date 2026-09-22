@@ -194,6 +194,7 @@ class ZenithPlugin:
         layout.addWidget(self.btn_start)
 
         self.lbl_status = QLabel("Idle")
+        self.lbl_status.setWordWrap(True)  # long errors wrap, don't widen the dock
         layout.addWidget(self.lbl_status)
 
         log_box = QgsCollapsibleGroupBox("Activity Log")
