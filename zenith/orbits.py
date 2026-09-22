@@ -47,6 +47,8 @@ def parse_tles(text):
         if l1.startswith("1 ") and l2.startswith("2 "):
             sat = _safe_twoline(l1, l2)
             if sat is not None:
+                # international designator (cols 10-17): YYNNNP -> launch year etc.
+                sat.intldesg = l1[9:17].strip()
                 out.append((name.strip(), sat))
             i += 3
         else:

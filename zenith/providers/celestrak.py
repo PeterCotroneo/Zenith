@@ -19,7 +19,7 @@ from qgis.PyQt.QtNetwork import QNetworkRequest, QNetworkReply
 from .base import SatelliteProvider
 from .._debug import dbg
 from ..orbits import parse_tles, propagate
-from ..satellites import category_for
+from ..satellites import category_for, launch_year
 
 COMPUTE_MS = 2000          # recompute satellite positions every 2 s
 # reuse cached TLEs for 2 h — CelesTrak asks clients not to re-fetch the same
@@ -56,10 +56,9 @@ class CelesTrakGroupProvider(SatelliteProvider):
 
     def update_area(self, bboxes):
         self._bbox = bboxes[0] if bboxes else None
+        # recompute for the new area at once, don't wait for the timer
         if self._want and self._sats:
-            # recompute for the new area at once (don't wait for the timer) and
-            # log it, so a pan/zoom is reflected immediately
-            dbg(f"Area changed — {self._compute()} satellites in view")
+            self._compute()
 
     def _cache_path(self):
         return os.path.join(tempfile.gettempdir(), f"zenith_tle_{self.group}.txt")
@@ -142,6 +141,7 @@ class CelesTrakGroupProvider(SatelliteProvider):
                 "norad": str(getattr(sat, "satnum", "")),
                 "name": name,
                 "category": category_for(name),
+                "launched": launch_year(getattr(sat, "intldesg", "")),
                 "lat": lat, "lon": lon,
                 "altitude": pos["alt"], "speed": pos["speed"],
                 "last_seen": stamp,

@@ -35,20 +35,23 @@ _FIELDS = [
     ("category", QVariant.String),
     ("altitude", QVariant.Int),
     ("speed", QVariant.Double),
+    ("orbit", QVariant.String),
+    ("launched", QVariant.Int),
     ("last_seen", QVariant.String),
 ]
 _FIELD_INDEX = {name: i for i, (name, _t) in enumerate(_FIELDS)}
 
 _ALIASES = {
     "norad": "NORAD ID", "name": "Name", "category": "Category",
-    "altitude": "Altitude (km)", "speed": "Speed (km/s)",
-    "last_seen": "Computed (UTC)",
+    "altitude": "Altitude (km)", "speed": "Speed (km/s)", "orbit": "Orbit",
+    "launched": "Launched", "last_seen": "Computed (UTC)",
 }
 
 _MAP_TIP = (
     "<b>[% \"name\" %]</b> <span style='color:gray'>NORAD [% \"norad\" %]</span><br/>"
-    "[% \"category\" %]<br/>"
+    "[% \"category\" %][% CASE WHEN \"orbit\" != '' THEN ' · ' || \"orbit\" ELSE '' END %]<br/>"
     "Altitude [% coalesce(\"altitude\",'?') %] km · [% coalesce(\"speed\",'?') %] km/s"
+    "[% CASE WHEN \"launched\" IS NOT NULL THEN '<br/>Launched ' || \"launched\" ELSE '' END %]"
 )
 
 # category -> colour (also the order shown in the legend)
@@ -88,6 +91,31 @@ def category_for(name):
     if any(k in n for k in _DEBRIS):
         return "Debris/Rocket"
     return "Other"
+
+
+def launch_year(intldesg):
+    """Launch year from the international designator (e.g. '98067A' -> 1998).
+    The 2-digit year rolls over at 57 per the TLE convention."""
+    d = (intldesg or "").strip()
+    if len(d) < 2 or not d[:2].isdigit():
+        return None
+    yy = int(d[:2])
+    return 1900 + yy if yy >= 57 else 2000 + yy
+
+
+def orbit_class(alt_km):
+    """LEO / MEO / GEO / High from altitude (km)."""
+    try:
+        a = float(alt_km)
+    except (TypeError, ValueError):
+        return ""
+    if a < 2000:
+        return "LEO"
+    if 34000 <= a <= 37000:
+        return "GEO"
+    if a > 37000:
+        return "High"
+    return "MEO"
 
 
 class SatelliteStore:
@@ -205,6 +233,8 @@ class SatelliteStore:
             _FIELD_INDEX["category"]: rec.get("category", "Other"),
             _FIELD_INDEX["altitude"]: (int(rec["altitude"]) if rec.get("altitude") is not None else None),
             _FIELD_INDEX["speed"]: (round(rec["speed"], 3) if rec.get("speed") is not None else None),
+            _FIELD_INDEX["orbit"]: orbit_class(rec.get("altitude")),
+            _FIELD_INDEX["launched"]: rec.get("launched"),
             _FIELD_INDEX["last_seen"]: rec.get("last_seen", ""),
         }
 
