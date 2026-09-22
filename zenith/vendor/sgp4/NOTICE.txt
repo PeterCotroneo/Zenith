@@ -1,0 +1,4 @@
+This directory contains the pure-Python "sgp4" library by Brandon Rhodes,
+vendored unmodified for offline orbit propagation.
+Source: https://github.com/brandon-rhodes/python-sgp4  (version 1.4)
+License: MIT

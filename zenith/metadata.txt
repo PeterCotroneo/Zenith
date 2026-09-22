@@ -1,0 +1,17 @@
+[general]
+name=Zenith
+qgisMinimumVersion=3.28
+qgisMaximumVersion=4.99
+description=Watch live satellites overhead on your map — computed from orbital data, in your map view or a drawn area.
+about=Zenith streams live satellite positions into QGIS and shows them moving on the map — track your current map view or draw an area to watch. Satellites don't broadcast their positions, so Zenith fetches their orbital elements (TLEs) free and keyless from CelesTrak and computes each satellite's position locally with SGP4 — which means no rate limits and complete global coverage. Pick a group: space stations (ISS), the brightest/visible satellites, the GPS constellation, weather satellites, Starlink, or all active satellites. Satellites are coloured by constellation/type, busy areas cluster into counted badges, and clicking a satellite opens it on N2YO. Data is live only — Zenith does not replay history. It is the space-side companion to Wake (marine vessels) and Contrail (aircraft). Uses the vendored pure-Python sgp4 library (Brandon Rhodes, MIT).
+version=0.1.0
+author=Peter Cotroneo
+email=peter.cotroneo.qgis@gmail.com
+tracker=https://github.com/PeterCotroneo/Zenith/issues
+repository=https://github.com/PeterCotroneo/Zenith
+homepage=https://github.com/PeterCotroneo/Zenith
+category=Plugins
+icon=icon.svg
+experimental=False
+deprecated=False
+tags=satellite,space,orbit,tle,sgp4,tracking,iss,starlink,live,celestrak
