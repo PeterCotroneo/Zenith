@@ -56,6 +56,10 @@ class CelesTrakGroupProvider(SatelliteProvider):
 
     def update_area(self, bboxes):
         self._bbox = bboxes[0] if bboxes else None
+        if self._want and self._sats:
+            # recompute for the new area at once (don't wait for the timer) and
+            # log it, so a pan/zoom is reflected immediately
+            dbg(f"Area changed — {self._compute()} satellites in view")
 
     def _cache_path(self):
         return os.path.join(tempfile.gettempdir(), f"zenith_tle_{self.group}.txt")
@@ -122,7 +126,7 @@ class CelesTrakGroupProvider(SatelliteProvider):
 
     def _compute(self):
         if not self._want or not self._sats:
-            return
+            return 0
         now = datetime.datetime.now(datetime.timezone.utc)
         stamp = now.strftime("%Y-%m-%d %H:%M:%S UTC")
         bbox = self._bbox
@@ -144,6 +148,7 @@ class CelesTrakGroupProvider(SatelliteProvider):
             })
         if batch:
             self.satellites_update.emit(batch)
+        return len(batch)
 
 
 class StationsProvider(CelesTrakGroupProvider):
